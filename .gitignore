@@ -1,0 +1,14 @@
+# ── 開發工具產生的臨時檔案（跑測試時會產生，不需要上傳） ──
+tools/_smoke.html
+tools/_smoke-dom.html
+tools/_smoke-result*.txt
+tools/_chrome*.log
+tools/_chrome-profile*/
+tools/_server*.log
+tools/_server*.err
+
+# ── 系統檔案 ──
+Thumbs.db
+desktop.ini
+.DS_Store
+*.tmp

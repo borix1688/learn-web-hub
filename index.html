@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  前端基礎學堂 Frontend Foundations — index.html（主程式入口）
+  ----------------------------------------------------------------------------
+  這一個網站就包含三個科目：HTML、CSS、JavaScript。
+  首頁先讓使用者揀科目，之後才進入該科目的「學習 / 練習 / 測驗」三大模組。
+
+  ★ 想改站名：改 app.js 最上面的 BRAND，同時改這個檔案裡面的
+    <title>、<meta name="description"> 與下面「品牌靜態文字」兩行
+    （那兩行是 JS 未載入前的顯示，開機後會由 app.js 接手）。
+
+  「結構」與「內容」分離：
+    - 這個檔案只放頁面骨架（HTML 標籤），不含任何課程內容。
+    - 課程內容全部放喺 data-html.js / data-css.js / data-js.js。
+    - 樣式在 styles.css、邏輯在 app.js / quiz.js / runner.js。
+
+  檔案載入順序很重要（見頁面底部 <script>）：
+    三個 data 檔 → runner.js → quiz.js → app.js
+  （前面的檔案提供資料或工具，最後由 app.js 把整個畫面砌出來）
+  ============================================================================
+-->
+<html lang="zh-Hant-HK">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>前端基礎學堂 Frontend Foundations｜HTML · CSS · JavaScript 零基礎入門</title>
+  <meta name="description" content="前端基礎學堂（Frontend Foundations）：寫給完全零基礎初學者的互動學習網頁。HTML、CSS、JavaScript 三科，每科都有學習內容、可即時預覽的練習框、章節測驗。" />
+
+  <!-- 網站圖示（內嵌 SVG：品牌字母 F + 主色圓角方塊，不需要額外檔案） -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f8a8b'/><text x='32' y='45' font-size='38' font-family='Segoe UI,system-ui,sans-serif' font-weight='700' text-anchor='middle' fill='%23ffffff'>F</text></svg>" />
+
+  <!-- 樣式表 -->
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+
+  <!-- ======================= 載入中提示（腳本尚未就緒時顯示） ======================= -->
+  <div id="boot-note" class="boot-note">正在載入課程內容…</div>
+
+  <!-- ============================== 頂部工具列 ============================== -->
+  <header class="topbar">
+    <div class="topbar-inner">
+
+      <!-- 手機版：開關側邊章節選單 -->
+      <button id="btn-menu" class="icon-btn only-mobile" type="button"
+              aria-label="開啟章節選單" aria-expanded="false">☰</button>
+
+      <!-- 返回科目選擇（首頁時隱藏） -->
+      <button id="btn-home" class="icon-btn back-btn" type="button" hidden
+              title="返回科目選擇" aria-label="返回科目選擇">←</button>
+
+      <div class="brand">
+        <!-- 這三行是 JS 未載入前的靜態文字；開機後 app.js 會用 BRAND 覆蓋 -->
+        <span class="brand-logo" id="brand-logo" aria-hidden="true">F</span>
+        <span class="brand-text">
+          <strong id="brand-title">前端基礎學堂</strong>
+          <small id="brand-sub">HTML · CSS · JavaScript，由零開始打穩基礎</small>
+        </span>
+      </div>
+
+      <!-- 三大模組分頁：學習 / 練習 / 測驗（未進入科目時隱藏） -->
+      <nav class="tabs" id="main-tabs" role="tablist" aria-label="主要模組" hidden>
+        <button class="tab is-active" type="button" role="tab" data-tab="learn" aria-selected="true">
+          📖 學習
+        </button>
+        <button class="tab" type="button" role="tab" data-tab="practice" aria-selected="false">
+          🧪 練習
+        </button>
+        <button class="tab" type="button" role="tab" data-tab="quiz" aria-selected="false">
+          📝 測驗
+        </button>
+      </nav>
+
+      <div class="topbar-actions">
+        <!-- 整體進度環：顯示所有科目已完成的學習點百分比 -->
+        <div class="ring" id="overall-ring" title="整體學習進度" aria-label="整體學習進度">
+          <svg viewBox="0 0 36 36" aria-hidden="true">
+            <circle class="ring-bg" cx="18" cy="18" r="15.9"></circle>
+            <circle class="ring-fg" id="overall-ring-fg" cx="18" cy="18" r="15.9"></circle>
+          </svg>
+          <span class="ring-label" id="overall-ring-label">0%</span>
+        </div>
+
+        <!-- 深色／淺色模式切換 -->
+        <button id="btn-theme" class="icon-btn" type="button" title="切換深色模式" aria-label="切換深色模式">🌙</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================================ 主體 ================================ -->
+  <div class="layout">
+
+    <!-- 左側：章節選單（只在進入科目後顯示，內容由 app.js 產生） -->
+    <aside id="sidebar" class="sidebar" aria-label="章節選單" hidden>
+      <div class="sidebar-head">
+        <span id="sidebar-title">課程目錄</span>
+        <button id="btn-reset" class="text-btn" type="button" title="清除所有學習進度">重置進度</button>
+      </div>
+      <nav id="chapter-list" class="chapter-list"><!-- JS 插入 --></nav>
+      <p class="sidebar-foot">進度會自動存在你的瀏覽器（localStorage），換裝置不會同步。</p>
+    </aside>
+
+    <!-- 右側：內容區 -->
+    <main class="content">
+
+      <!-- ---------------------- 模組零：首頁（揀科目） ---------------------- -->
+      <section id="view-home" class="view is-active" data-view="home" role="tabpanel">
+        <div class="home-hero">
+          <h1>想學邊一樣？揀一個科目開始</h1>
+          <p>
+            HTML 負責「有咩內容」、CSS 負責「靚唔靚」、JavaScript 負責「識唔識反應」。
+            三個科目都有：<b>📖 學習</b>（比喻 + 範例 + 即時睇到效果）、
+            <b>🧪 練習</b>（自己改程式碼即刻跑）、<b>📝 測驗</b>（每章都有題目同解釋）。
+          </p>
+        </div>
+
+        <div class="subject-grid" id="subject-grid"><!-- JS 插入 --></div>
+
+        <div class="home-note">
+          <b>💡 完全零基礎嘅話，建議順序：</b>
+          <ol>
+            <li><b>HTML</b> — 先學識砌出網頁嘅內容（標題、段落、清單、表格、圖片）。</li>
+            <li><b>CSS</b> — 再學識幫內容化妝（顏色、字體、排版、定位）。</li>
+            <li><b>JavaScript</b> — 最後學識令網頁「識反應」（按鈕、計數、改內容）。</li>
+          </ol>
+          <p class="muted">進度會自動儲存喺你嘅瀏覽器，隨時閂咗個網頁再開都仲喺度。</p>
+        </div>
+      </section>
+
+      <!-- ---------------------- 模組一：學習（Learn） ---------------------- -->
+      <section id="view-learn" class="view" data-view="learn" role="tabpanel">
+        <div id="learn-body"><!-- JS 插入 --></div>
+
+        <nav class="pager" id="learn-pager" aria-label="章節切換">
+          <button id="btn-prev-chapter" class="btn" type="button">← 上一章</button>
+          <button id="btn-next-chapter" class="btn btn-primary" type="button">下一章 →</button>
+        </nav>
+      </section>
+
+      <!-- -------------------- 模組二：練習（Interactive） -------------------- -->
+      <section id="view-practice" class="view" data-view="practice" role="tabpanel">
+        <div class="view-head">
+          <h2>🧪 互動練習</h2>
+          <p id="practice-lead">揀一個練習，直接改下面嘅程式碼，再撳「▶ 執行」睇結果。唔識做可以撳「💡 提示」或者「👀 顯示答案」。</p>
+        </div>
+
+        <div class="tabs tabs-sub" id="practice-tabs" role="tablist" aria-label="選擇練習"><!-- JS 插入 --></div>
+
+        <!-- 每張練習卡（由 app.js 控制顯示／隱藏） -->
+        <div id="practice-list"><!-- JS 插入 --></div>
+      </section>
+
+      <!-- ---------------------- 模組三：測驗（Quiz） ---------------------- -->
+      <section id="view-quiz" class="view" data-view="quiz" role="tabpanel">
+        <div id="quiz-body"><!-- JS 插入 --></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- 手機版側欄遮罩 -->
+  <div id="backdrop" class="backdrop" hidden></div>
+
+  <!-- ============================== 頁尾 ============================== -->
+  <footer class="site-foot">
+    <p><strong>前端基礎學堂 Frontend Foundations</strong> · 純 HTML + CSS + JavaScript，無框架、無伺服器，雙擊 <code>index.html</code> 就開得。</p>
+  </footer>
+
+  <!-- ======================================================================
+       腳本載入順序（不可調換）
+       1. data-html.js / data-css.js / data-js.js — 三科課程資料
+       2. runner.js — 安全執行程式碼的沙箱（即時預覽 + console 輸出）
+       3. quiz.js   — 測驗模組
+       4. app.js    — 主程式：渲染畫面、科目切換、分頁、進度儲存
+       ====================================================================== -->
+  <script src="./data-html.js"></script>
+  <script src="./data-css.js"></script>
+  <script src="./data-js.js"></script>
+  <script src="./runner.js"></script>
+  <script src="./quiz.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
